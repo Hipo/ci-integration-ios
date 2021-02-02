@@ -1,9 +1,32 @@
 default_platform(:ios)
 
 platform :ios do
+
+  shared_env_variables = nil
+
+  before_all do |lane, options|
+    shared_env_variables = [
+      "FASTLANE_USER",
+      "TEAM_ID",
+      "KEY_ID",
+      "ISSUER_ID",
+      "KEY_CONTENT",
+      "IN_HOUSE",
+      "WORKSPACE",
+      "SLACK_WEBHOOK_URL",
+      "MATCH_PASSWORD",
+      "S3_BUCKET",
+      "S3_ACCESS_KEY",
+      "S3_SECRET_ACCESS_KEY",
+      "S3_REGION"
+    ]
+  end
+
   # PUBLIC LANES
 
   lane :build_store_app do |options|
+    check_store_env_variables
+    
     build(
       app_identifier: ENV["APP_ID"],
       scheme: ENV["SCHEME"],
@@ -12,6 +35,8 @@ platform :ios do
   end
 
   lane :build_staging_app do |options|
+    check_staging_env_variables
+
     build(
       app_identifier: ENV["STAGING_APP_ID"],
       scheme: ENV["STAGING_SCHEME"],
@@ -20,6 +45,8 @@ platform :ios do
   end
 
   lane :build_preprod_app do |options|
+    check_preprod_env_variables
+
     build(
       app_identifier: ENV["PREPROD_APP_ID"],
       scheme: ENV["PREPROD_SCHEME"],
@@ -28,6 +55,8 @@ platform :ios do
   end
 
   lane :build_prod_app do |options|
+    check_prod_env_variables
+
     build(
       app_identifier: ENV["APP_ID"],
       scheme: ENV["PROD_SCHEME"],
@@ -42,6 +71,8 @@ platform :ios do
   end
 
   lane :deploy_staging_app_to_tryouts do |options|
+    check_staging_env_variables
+
     deploy_to_tryouts(
       target: "Staging",
       app_identifier: ENV["STAGING_APP_ID"],
@@ -54,6 +85,8 @@ platform :ios do
   end
 
   lane :deploy_preprod_app_to_tryouts do |options|
+    check_preprod_env_variables
+
     deploy_to_tryouts(
       target: "Preprod",
       app_identifier: ENV["PREPROD_APP_ID"],
@@ -66,6 +99,8 @@ platform :ios do
   end
 
   lane :deploy_prod_app_to_tryouts do |options|
+    check_prod_env_variables
+
     deploy_to_tryouts(
       target: "Prod",
       app_identifier: ENV["APP_ID"],
@@ -84,6 +119,8 @@ platform :ios do
   end
 
   lane :deploy_staging_app_to_testflight do |options|
+    check_staging_env_variables
+
     deploy_to_testflight(
       target: "Staging",
       app_identifier: ENV["STAGING_APP_ID"],
@@ -95,6 +132,8 @@ platform :ios do
   end
 
   lane :deploy_preprod_app_to_testflight do |options|
+    check_preprod_env_variables
+
     deploy_to_testflight(
       target: "Preprod",
       app_identifier: ENV["PREPROD_APP_ID"],
@@ -106,6 +145,8 @@ platform :ios do
   end
 
   lane :deploy_store_app_to_testflight do |options|
+    check_store_env_variables
+
     deploy_to_testflight(
       target: "Store",
       app_identifier: ENV["APP_ID"],
@@ -165,6 +206,8 @@ platform :ios do
 
   desc "Release prod app to firebase"
   lane :firebase_prod_release do |options|
+    check_prod_env_variables
+    
     #1
     clean_build_artifacts
 
@@ -509,6 +552,69 @@ platform :ios do
       success: options[:is_success],
       message: options[:message],
       attachment_properties: options[:attachment_properties]
+    )
+  end
+
+  private_lane :check_store_env_variables do |options|
+    variables = shared_env_variables + [
+      "APP_ID", 
+      "SCHEME",
+      "IPA_NAME",
+      "GOOGLE_SERVICE_INFO_PLIST_PATH",
+      "APP_STORE_BUILD_CONFIGURATION",
+      "FASTLANE_ITC_TEAM_NAME",
+    ]
+
+    ensure_env_vars(
+      env_vars: variables
+    )
+  end
+
+  private_lane :check_prod_env_variables do |options|
+    variables = shared_env_variables + [
+      "APP_ID", 
+      "PROD_SCHEME",
+      "PROD_IPA_NAME",
+      "PROD_TRYOUTS_APP_ID",
+      "PROD_TRYOUTS_API_TOKEN",
+      "PROD_GOOGLE_SERVICE_INFO_PLIST_PATH",
+      "ADHOC_BUILD_CONFIGURATION"
+    ]
+
+    ensure_env_vars(
+      env_vars: variables
+    )
+  end
+
+  private_lane :check_staging_env_variables do |options|
+    variables = shared_env_variables + [
+      "STAGING_APP_ID", 
+      "STAGING_SCHEME",
+      "STAGING_IPA_NAME",
+      "STAGING_TRYOUTS_APP_ID",
+      "STAGING_TRYOUTS_API_TOKEN",
+      "STAGING_GOOGLE_SERVICE_INFO_PLIST_PATH",
+      "ADHOC_BUILD_CONFIGURATION"
+    ]
+
+    ensure_env_vars(
+      env_vars: variables
+    )
+  end
+
+  private_lane :check_preprod_env_variables do |options|
+    variables = shared_env_variables + [
+      "PREPROD_APP_ID", 
+      "PREPROD_SCHEME",
+      "PREPROD_IPA_NAME",
+      "PREPROD_TRYOUTS_APP_ID",
+      "PREPROD_TRYOUTS_API_TOKEN",
+      "PREPROD_GOOGLE_SERVICE_INFO_PLIST_PATH",
+      "ADHOC_BUILD_CONFIGURATION"
+    ]
+
+    ensure_env_vars(
+      env_vars: variables
     )
   end
 end
