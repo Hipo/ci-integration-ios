@@ -204,64 +204,6 @@ platform :ios do
     )
   end
 
-  desc "Release prod app to firebase"
-  lane :firebase_prod_release do |options|
-    check_prod_env_variables
-    
-    #1
-    clean_build_artifacts
-
-    #2
-    register_connect_api_key
-
-    #3
-    install_pods(is_store: options[:is_store])
-
-    #4
-    sign(
-      type: "adhoc",
-      app_identifier: ENV["PROD_APP_ID"]
-    )
-
-    #5
-    archive(
-      configuration: ENV["ADHOC_BUILD_CONFIGURATION"],
-      scheme: ENV["PROD_SCHEME"],
-      output_name: ENV["PROD_IPA_NAME"],
-      export_method: "ad-hoc",
-      is_store: false
-    )
-
-    #6
-    firebase_app_distribution(
-        app: ENV["FIREBASE_APP_ID"],
-        groups: ENV["FIREBASE_PROD_TEST_GROUPS"],
-        firebase_cli_token: ENV["FIREBASE_TOKEN"]
-    )
-
-    #7
-    upload_symbols_to_crashlytics(gsp_path: ENV["PROD_GOOGLE_SERVICE_INFO_PLIST_PATH"])
-
-    #8
-    notify_slack_for_success(
-      message: "🚀 App is deployed to Firebase!",
-      attachment_properties: {
-        fields: [
-          {
-            title: "Git Tag",
-            value: last_git_tag,
-            short: true
-          },
-          {
-            title: "Download Link",
-            value: "https://appdistribution.firebase.dev/i/464655e53b8c6352",
-            short: false
-          }
-        ]
-      }
-    )
-  end
-
   # PRIVATE LANES
 
   private_lane :deploy_to_tryouts do |options|
