@@ -203,68 +203,8 @@ platform :ios do
       }
     )
   end
-
-  desc "Release prod app to firebase"
-  lane :firebase_prod_release do |options|
-    check_prod_env_variables
-    
-    #1
-    clean_build_artifacts
-
-    #2
-    register_connect_api_key
-
-    #3
-    install_pods(is_store: options[:is_store])
-
-    #4
-    sign(
-      type: "adhoc",
-      app_identifier: ENV["PROD_APP_ID"]
-    )
-
-    #5
-    archive(
-      configuration: ENV["ADHOC_BUILD_CONFIGURATION"],
-      scheme: ENV["PROD_SCHEME"],
-      output_name: ENV["PROD_IPA_NAME"],
-      export_method: "ad-hoc",
-      is_store: false
-    )
-
-    #6
-    firebase_app_distribution(
-        app: ENV["FIREBASE_APP_ID"],
-        groups: ENV["FIREBASE_PROD_TEST_GROUPS"],
-        firebase_cli_token: ENV["FIREBASE_TOKEN"]
-    )
-
-    #7
-    upload_symbols_to_crashlytics(gsp_path: ENV["PROD_GOOGLE_SERVICE_INFO_PLIST_PATH"])
-
-    #8
-    notify_slack_for_success(
-      message: "🚀 App is deployed to Firebase!",
-      attachment_properties: {
-        fields: [
-          {
-            title: "Git Tag",
-            value: last_git_tag,
-            short: true
-          },
-          {
-            title: "Download Link",
-            value: "https://appdistribution.firebase.dev/i/464655e53b8c6352",
-            short: false
-          }
-        ]
-      }
-    )
-  end
-
-  # PRIVATE LANES
-
-  private_lane :deploy_to_tryouts do |options|
+  
+  lane :deploy_to_tryouts do |options|
     target = options[:target]
     app_identifier = options[:app_identifier]
 
@@ -339,7 +279,7 @@ platform :ios do
     )
   end
 
-  private_lane :deploy_to_testflight do |options|
+  lane :deploy_to_testflight do |options|
     target = options[:target]
     app_identifier = options[:app_identifier]
 
@@ -399,7 +339,7 @@ platform :ios do
   end
 
   # Register New Devices Taken From Tryouts
-  private_lane :register_missing_devices do |options|
+  lane :register_missing_devices do |options|
     connection = Faraday.new "https://api.tryouts.io/v1/applications/#{options[:tryouts_app_id]}/testers/" do |conn|
       conn.headers["Authorization"] = options[:tryouts_api_token]
       conn.request :url_encoded
@@ -431,7 +371,7 @@ platform :ios do
     end
   end
 
-  private_lane :sync_dev_cert do |options|
+  lane :sync_dev_cert do |options|
     target = options[:target]
     app_identifier = options[:app_identifier]
 
@@ -449,7 +389,7 @@ platform :ios do
   end
 
   # Sign Cerificates For Given Profile Type
-  private_lane :sign do |options|
+  lane :sign do |options|
     match(
       type: options[:type], 
       app_identifier: options[:app_identifier],
@@ -459,7 +399,7 @@ platform :ios do
   end
 
   #Register api key for app store connect 
-  private_lane :register_connect_api_key do |options|
+  lane :register_connect_api_key do |options|
     app_store_connect_api_key(
       key_id: ENV["KEY_ID"],
       issuer_id: ENV["ISSUER_ID"],
@@ -468,7 +408,7 @@ platform :ios do
     )
   end
 
-  private_lane :install_pods do |options|
+  lane :install_pods do |options|
     ENV["COCOAPODS_SCHEME"] = options[:is_store] ? "production" : "development"
 
     cocoapods(
@@ -477,7 +417,7 @@ platform :ios do
     )
   end
 
-  private_lane :build do |options|
+  lane :build do |options|
     #1
     install_pods(is_store: options[:is_store])
 
@@ -490,7 +430,7 @@ platform :ios do
     )
   end
 
-  private_lane :archive do |options|
+  lane :archive do |options|
     #1
     install_pods(is_store: options[:is_store])
 
@@ -509,7 +449,7 @@ platform :ios do
     )
   end
 
-  private_lane :upload_to_tryouts do |options|
+  lane :upload_to_tryouts do |options|
     tryouts(
       app_id: options[:tryouts_app_id],
       api_token: options[:tryouts_api_token],
@@ -520,7 +460,7 @@ platform :ios do
     )
   end
 
-  private_lane :notify_slack_for_success do |options|
+  lane :notify_slack_for_success do |options|
     notify_slack(
       default_payloads: [:git_branch],
       is_success: true,
@@ -529,7 +469,7 @@ platform :ios do
     )
   end
 
-  private_lane :notify_slack_for_error do |options|
+  lane :notify_slack_for_error do |options|
     notify_slack(
       default_payloads: [:git_branch, :lane],
       is_success: false,
@@ -538,7 +478,7 @@ platform :ios do
     )
   end
 
-  private_lane :notify_slack do |options|
+  lane :notify_slack do |options|
     slack_webhook_url = ENV["SLACK_WEBHOOK_URL"]
 
     if slack_webhook_url == nil
@@ -555,7 +495,7 @@ platform :ios do
     )
   end
 
-  private_lane :check_store_env_variables do |options|
+  lane :check_store_env_variables do |options|
     variables = shared_env_variables + [
       "APP_ID", 
       "SCHEME",
@@ -570,7 +510,7 @@ platform :ios do
     )
   end
 
-  private_lane :check_prod_env_variables do |options|
+  lane :check_prod_env_variables do |options|
     variables = shared_env_variables + [
       "APP_ID", 
       "PROD_SCHEME",
@@ -586,7 +526,7 @@ platform :ios do
     )
   end
 
-  private_lane :check_staging_env_variables do |options|
+  lane :check_staging_env_variables do |options|
     variables = shared_env_variables + [
       "STAGING_APP_ID", 
       "STAGING_SCHEME",
@@ -602,7 +542,7 @@ platform :ios do
     )
   end
 
-  private_lane :check_preprod_env_variables do |options|
+  lane :check_preprod_env_variables do |options|
     variables = shared_env_variables + [
       "PREPROD_APP_ID", 
       "PREPROD_SCHEME",
