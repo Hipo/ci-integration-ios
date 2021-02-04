@@ -200,7 +200,7 @@ platform :ios do
 
     app_name = app_name_for_target(target: options[:target])
 
-    send_tryouts_all_notification_to_slack(urls: [{text: app_name, tryouts_release["download_url"]}])
+    send_tryouts_all_notification_to_slack(actions: [{text: app_name, tryouts_release["download_url"]}])
   end
 
   private_lane :send_tryouts_all_notification_to_slack do |options|
