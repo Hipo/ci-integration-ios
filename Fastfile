@@ -332,7 +332,7 @@ platform :ios do
     end
 
     #1
-    clean_build_artifact
+    clean_build_artifacts
 
     #2
     register_connect_api_key
