@@ -215,7 +215,7 @@ platform :ios do
     actions = []
 
     for action in available_actions
-      actions.push({type: "button", text: action.name, url: action.url})
+      actions.push({type: "button", text: action.text, url: action.url})
     end
 
     if actions.empty?
