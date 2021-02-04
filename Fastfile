@@ -202,7 +202,7 @@ platform :ios do
 
     action = {
       text: app_name, 
-      tryouts_release["download_url"]
+      url: tryouts_release["download_url"]
     }
 
     send_tryouts_all_notification_to_slack(actions: [action])
