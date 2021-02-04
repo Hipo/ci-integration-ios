@@ -193,8 +193,7 @@ platform :ios do
   end
 
   private_lane :app_name_for_target do |options|
-    app_name = ENV["APP_NAME"] + " " + options[:target]
-    return app_name
+    ENV["APP_NAME"] + " " + options[:target]
   end
 
   private_lane :send_tryouts_target_notification_to_slack do |options|
