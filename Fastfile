@@ -223,7 +223,7 @@ platform :ios do
     end
 
     notify_slack_for_success(
-      message: "🚀 App is deployed to Tryouts!",
+      message: "🚀 Released #{last_git_tag} (iOS) to Tryouts!",
       attachment_properties: {
         actions: actions
       }
@@ -412,21 +412,7 @@ platform :ios do
 
     #7
     notify_slack_for_success(
-      message: "🚀 App is deployed to TestFlight!",
-      attachment_properties: {
-        fields: [
-          {
-            title: "Git Tag",
-            value: last_git_tag,
-            short: true
-          },
-          {
-            title: "Target",
-            value: target,
-            short: true
-          }
-        ]
-      }
+      message: "🚀 Released #{last_git_tag} to TestFlight!"
     )
   end
 
