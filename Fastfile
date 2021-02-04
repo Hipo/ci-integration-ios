@@ -1,3 +1,5 @@
+fastlane_version "2.72.0"
+
 default_platform(:ios)
 
 platform :ios do
