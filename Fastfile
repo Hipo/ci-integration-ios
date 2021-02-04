@@ -4,6 +4,10 @@ platform :ios do
 
   shared_env_variables = nil
 
+  tryouts_prod_release = nil
+  tryouts_preprod_release = nil
+  tryouts_staging_release = nil
+
   before_all do |lane, options|
     shared_env_variables = [
       "FASTLANE_USER",
@@ -18,7 +22,8 @@ platform :ios do
       "S3_BUCKET",
       "S3_ACCESS_KEY",
       "S3_SECRET_ACCESS_KEY",
-      "S3_REGION"
+      "S3_REGION",
+      "APP_NAME"
     ]
   end
 
@@ -65,50 +70,156 @@ platform :ios do
   end
 
   lane :deploy_all_apps_to_tryouts do |options|
-    deploy_staging_app_to_tryouts
-    deploy_preprod_app_to_tryouts
-    deploy_prod_app_to_tryouts
+    deploy_staging_app_to_tryouts(send_notification: false)
+    deploy_preprod_app_to_tryouts(send_notification: false)
+    deploy_prod_app_to_tryouts(send_notification: false)
+
+    actions = []
+
+    if tryouts_staging_release != nil
+      actions.push(tryouts_staging_release)
+    end
+
+    if tryouts_preprod_release != nil
+      actions.push(tryouts_preprod_release)
+    end
+
+    if tryouts_prod_release != nil
+      actions.push(tryouts_prod_release)
+    end
+
+    send_tryouts_all_notification_to_slack(actions: actions)
   end
 
-  lane :deploy_staging_app_to_tryouts do |options|
-    check_staging_env_variables
+  lane :deploy_staging_app_to_tryouts do |options|    
+    send_notification = options[:send_notification] || true
+    target = "Staging"
+    app_id = ENV["STAGING_APP_ID"]
+
+    if app_id == nil
+      UI.important "No app is found to deploy to Tryouts [#{target}]"
+      next
+    end
+
+    if send_notification
+      check_staging_env_variables
+    end
 
     deploy_to_tryouts(
-      target: "Staging",
-      app_identifier: ENV["STAGING_APP_ID"],
+      target: target,
+      app_identifier: app_id,
       scheme: ENV["STAGING_SCHEME"],
       ipa_name: ENV["STAGING_IPA_NAME"],
       tryouts_app_id: ENV["STAGING_TRYOUTS_APP_ID"],
       tryouts_api_token: ENV["STAGING_TRYOUTS_API_TOKEN"],
       google_service_info_plist_path: ENV["STAGING_GOOGLE_SERVICE_INFO_PLIST_PATH"]
     )
+
+    tryouts_release = lane_context[SharedValues::TRYOUTS_BUILD_INFORMATION] 
+
+    tryouts_staging_release = {text: app_name_for_target(target: target), url: tryouts_release["download_url"]}
+
+    if send_notification
+      send_tryouts_notification_to_slack(target: target)
+    end
   end
 
   lane :deploy_preprod_app_to_tryouts do |options|
-    check_preprod_env_variables
+    send_notification = options[:send_notification] || true
+    target = "Preprod"
+    app_id = ENV["PREPROD_APP_ID"]
+
+    if app_id == nil
+      UI.important "No app is found to deploy to Tryouts [#{target}]"
+      next
+    end
+
+    if send_notification
+      check_preprod_env_variables
+    end
 
     deploy_to_tryouts(
-      target: "Preprod",
-      app_identifier: ENV["PREPROD_APP_ID"],
+      target: target,
+      app_identifier: app_id,
       scheme: ENV["PREPROD_SCHEME"],
       ipa_name: ENV["PREPROD_IPA_NAME"],
       tryouts_app_id: ENV["PREPROD_TRYOUTS_APP_ID"],
       tryouts_api_token: ENV["PREPROD_TRYOUTS_API_TOKEN"],
       google_service_info_plist_path: ENV["PREPROD_GOOGLE_SERVICE_INFO_PLIST_PATH"]
     )
+
+    tryouts_release = lane_context[SharedValues::TRYOUTS_BUILD_INFORMATION] 
+
+    tryouts_preprod_release = {text: app_name_for_target(target: target), url: tryouts_release["download_url"]}
+
+    if send_notification
+      send_tryouts_notification_to_slack(target: target)
+    end
   end
 
   lane :deploy_prod_app_to_tryouts do |options|
-    check_prod_env_variables
+    send_notification = options[:send_notification] || true
+    target = "Prod"
+    app_id = ENV["APP_ID"]
+
+    if app_id == nil
+      UI.important "No app is found to deploy to Tryouts [#{target}]"
+      next
+    end
+
+    if send_notification
+      check_prod_env_variables
+    end
 
     deploy_to_tryouts(
-      target: "Prod",
-      app_identifier: ENV["APP_ID"],
+      target: target,
+      app_identifier: app_id,
       scheme: ENV["PROD_SCHEME"],
       ipa_name: ENV["PROD_IPA_NAME"],
       tryouts_app_id: ENV["PROD_TRYOUTS_APP_ID"],
       tryouts_api_token: ENV["PROD_TRYOUTS_API_TOKEN"],
       google_service_info_plist_path: ENV["PROD_GOOGLE_SERVICE_INFO_PLIST_PATH"]
+    )
+
+    tryouts_release = lane_context[SharedValues::TRYOUTS_BUILD_INFORMATION] 
+
+    tryouts_prod_release = {text: app_name_for_target(target: target), url: tryouts_release["download_url"]}
+
+    if send_notification
+      send_tryouts_notification_to_slack(target: target)
+    end
+  end
+
+  private_lane :app_name_for_target do |options|
+    app_name = ENV["APP_NAME"] + " " + options[:target]
+    return app_name
+  end
+
+  private_lane :send_tryouts_target_notification_to_slack do |options|
+    tryouts_release = lane_context[SharedValues::TRYOUTS_BUILD_INFORMATION] 
+
+    app_name = app_name_for_target(target: options[:target])
+
+    send_tryouts_all_notification_to_slack(urls: [{text: app_name, tryouts_release["download_url"]}])
+  end
+
+  private_lane :send_tryouts_all_notification_to_slack do |options|
+    available_actions = options[:actions]
+    actions = []
+
+    for action in available_actions
+      actions.push({type: "button", text: action.name, url: action.url})
+    end
+
+    if actions.empty?
+      next
+    end
+
+    notify_slack_for_success(
+      message: "🚀 App is deployed to Tryouts!",
+      attachment_properties: {
+        actions: actions
+      }
     )
   end
 
@@ -203,7 +314,7 @@ platform :ios do
       }
     )
   end
-  
+
   lane :deploy_to_tryouts do |options|
     target = options[:target]
     app_identifier = options[:app_identifier]
@@ -251,32 +362,6 @@ platform :ios do
 
     #7
     upload_symbols_to_crashlytics(gsp_path: options[:google_service_info_plist_path])
-
-    #8
-    tryouts_release = lane_context[SharedValues::TRYOUTS_BUILD_INFORMATION]
-
-    notify_slack_for_success(
-      message: "🚀 App is deployed to Tryouts!",
-      attachment_properties: {
-        fields: [
-          {
-            title: "Git Tag",
-            value: last_git_tag,
-            short: true
-          },
-          {
-            title: "Target",
-            value: target,
-            short: true
-          },
-          {
-            title: "Download Link",
-            value: tryouts_release["download_url"],
-            short: false
-          }
-        ]
-      }
-    )
   end
 
   lane :deploy_to_testflight do |options|
