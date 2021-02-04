@@ -554,7 +554,6 @@ platform :ios do
 
   lane :notify_slack_for_success do |options|
     notify_slack(
-      default_payloads: [:git_branch],
       is_success: true,
       message: options[:message],
       attachment_properties: options[:attachment_properties]
