@@ -94,7 +94,7 @@ platform :ios do
   end
 
   lane :deploy_staging_app_to_tryouts do |options|    
-    send_notification = options[:send_notification] || true
+    send_notification = (options[:send_notification] == nil) ? true : options[:send_notification]
     target = "Staging"
     app_id = ENV["STAGING_APP_ID"]
 
@@ -127,7 +127,7 @@ platform :ios do
   end
 
   lane :deploy_preprod_app_to_tryouts do |options|
-    send_notification = options[:send_notification] || true
+    send_notification = (options[:send_notification] == nil) ? true : options[:send_notification]
     target = "Preprod"
     app_id = ENV["PREPROD_APP_ID"]
 
@@ -160,7 +160,7 @@ platform :ios do
   end
 
   lane :deploy_prod_app_to_tryouts do |options|
-    send_notification = options[:send_notification] || true
+    send_notification = (options[:send_notification] == nil) ? true : options[:send_notification]
     target = "Prod"
     app_id = ENV["APP_ID"]
 
