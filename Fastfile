@@ -122,7 +122,7 @@ platform :ios do
     tryouts_staging_release = {text: app_name_for_target(target: target), url: tryouts_release["download_url"]}
 
     if send_notification
-      send_tryouts_notification_to_slack(target: target)
+      send_tryouts_target_notification_to_slack(target: target)
     end
   end
 
@@ -155,7 +155,7 @@ platform :ios do
     tryouts_preprod_release = {text: app_name_for_target(target: target), url: tryouts_release["download_url"]}
 
     if send_notification
-      send_tryouts_notification_to_slack(target: target)
+      send_tryouts_target_notification_to_slack(target: target)
     end
   end
 
@@ -188,7 +188,7 @@ platform :ios do
     tryouts_prod_release = {text: app_name_for_target(target: target), url: tryouts_release["download_url"]}
 
     if send_notification
-      send_tryouts_notification_to_slack(target: target)
+      send_tryouts_target_notification_to_slack(target: target)
     end
   end
 
