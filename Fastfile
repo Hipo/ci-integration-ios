@@ -116,6 +116,8 @@ platform :ios do
   }
 
   before_all do |lane, options|
+    process_variables
+
     check_env_variables(variables: required_env_variables[:shared])
 
     if env_value(key: env_variables[:core][:app_id]) != nil
@@ -136,6 +138,23 @@ platform :ios do
     ensure_env_vars(
       env_vars: options[:variables]
     )
+  end
+
+  private_lane :process_variables do |options|
+    if env_value(key: env_variables[:core][:prod_tryouts_app_id]) == nil
+      required_env_variables[:prod].delete(env_variables[:core][:prod_tryouts_app_id])
+      required_env_variables[:prod].delete(env_variables[:core][:prod_tryouts_api_token])
+    end
+
+    if env_value(key: env_variables[:core][:preprod_tryouts_app_id]) == nil
+      required_env_variables[:prod].delete(env_variables[:core][:preprod_tryouts_app_id])
+      required_env_variables[:prod].delete(env_variables[:core][:preprod_tryouts_api_token])
+    end
+
+    if env_value(key: env_variables[:core][:staging_tryouts_app_id]) == nil
+      required_env_variables[:prod].delete(env_variables[:core][:staging_tryouts_app_id])
+      required_env_variables[:prod].delete(env_variables[:core][:staging_tryouts_api_token])
+    end
   end
 
   # PUBLIC LANES
