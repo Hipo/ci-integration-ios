@@ -13,7 +13,7 @@ See the steps below for details about the installation.
 
 
 ### Download Files
-You can directly download the files [here](https://github.com/Hipo/ci-integration-ios/archive/main.zip) and copy items to project folder. -except Fastfile-
+You can directly download the files from **download branch** or directly [here](https://github.com/Hipo/ci-integration-ios/archive/download.zip) and copy items to project folder.
 
 ### Setup Dependencies
 
