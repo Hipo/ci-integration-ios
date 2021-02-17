@@ -1,0 +1,2 @@
+apple_id(ENV["FASTLANE_USER"]) # Your Apple email address
+team_id(ENV["TEAM_ID"])
