@@ -147,13 +147,13 @@ platform :ios do
     end
 
     if env_value(key: env_variables[:core][:preprod_tryouts_app_id]) == nil
-      required_env_variables[:prod].delete(env_variables[:core][:preprod_tryouts_app_id])
-      required_env_variables[:prod].delete(env_variables[:core][:preprod_tryouts_api_token])
+      required_env_variables[:preprod].delete(env_variables[:core][:preprod_tryouts_app_id])
+      required_env_variables[:preprod].delete(env_variables[:core][:preprod_tryouts_api_token])
     end
 
     if env_value(key: env_variables[:core][:staging_tryouts_app_id]) == nil
-      required_env_variables[:prod].delete(env_variables[:core][:staging_tryouts_app_id])
-      required_env_variables[:prod].delete(env_variables[:core][:staging_tryouts_api_token])
+      required_env_variables[:staging].delete(env_variables[:core][:staging_tryouts_app_id])
+      required_env_variables[:staging].delete(env_variables[:core][:staging_tryouts_api_token])
     end
   end
 
