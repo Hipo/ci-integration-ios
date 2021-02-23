@@ -118,43 +118,48 @@ platform :ios do
   before_all do |lane, options|
     process_variables
 
-    check_env_variables(variables: required_env_variables[:shared])
-
-    if env_value(key: env_variables[:core][:app_id]) != nil
-      check_env_variables(variables: required_env_variables[:store])
-      check_env_variables(variables: required_env_variables[:prod])
-    end
-
-    if env_value(key: env_variables[:core][:preprod_app_id]) != nil
-      check_env_variables(variables: required_env_variables[:preprod])
-    end
-
-    if env_value(key: env_variables[:core][:staging_app_id]) != nil
-      check_env_variables(variables: required_env_variables[:staging])
-    end
-  end
-
-  lane :check_env_variables do |options|
     ensure_env_vars(
-      env_vars: options[:variables]
+      env_vars: required_env_variables[:shared]
     )
+
+    if ENV[env_variables[:core][:app_id]] != nil
+      ensure_env_vars(
+        env_vars: required_env_variables[:store]
+      )
+
+      ensure_env_vars(
+        env_vars: required_env_variables[:prod]
+      )
+    end
+
+    if ENV[env_variables[:core][:preprod_app_id]] != nil
+      ensure_env_vars(
+        env_vars: required_env_variables[:preprod]
+      )
+    end
+
+    if ENV[env_variables[:core][:staging_app_id]] != nil
+      ensure_env_vars(
+        env_vars: required_env_variables[:staging]
+      )
+    end
   end
 
   lane :process_variables do
   end
 
   lane :remove_unused_tryouts_variables do 
-    if env_value(key: env_variables[:core][:prod_tryouts_app_id]) == nil
+    if ENV[env_variables[:core][:prod_tryouts_app_id]] == nil
       required_env_variables[:prod].delete(env_variables[:core][:prod_tryouts_app_id])
       required_env_variables[:prod].delete(env_variables[:core][:prod_tryouts_api_token])
     end
 
-    if env_value(key: env_variables[:core][:preprod_tryouts_app_id]) == nil
+    if ENV[env_variables[:core][:preprod_tryouts_app_id]] == nil
       required_env_variables[:preprod].delete(env_variables[:core][:preprod_tryouts_app_id])
       required_env_variables[:preprod].delete(env_variables[:core][:preprod_tryouts_api_token])
     end
 
-    if env_value(key: env_variables[:core][:staging_tryouts_app_id]) == nil
+    if ENV[env_variables[:core][:staging_tryouts_app_id]] == nil
       required_env_variables[:staging].delete(env_variables[:core][:staging_tryouts_app_id])
       required_env_variables[:staging].delete(env_variables[:core][:staging_tryouts_api_token])
     end
@@ -164,32 +169,32 @@ platform :ios do
 
   lane :build_store_app do |options|
     build(
-      app_identifier: env_value(key: env_variables[:core][:app_id]),
-      scheme: env_value(key: env_variables[:core][:scheme]),
+      app_identifier: ENV[env_variables[:core][:app_id]],
+      scheme: ENV[env_variables[:core][:scheme]],
       is_store: true
     )
   end
 
   lane :build_staging_app do |options|
     build(
-      app_identifier: env_value(key: env_variables[:core][:staging_app_id]),
-      scheme: env_value(key: env_variables[:core][:staging_scheme]),
+      app_identifier: ENV[env_variables[:core][:staging_app_id]],
+      scheme: ENV[env_variables[:core][:staging_scheme]],
       is_store: false
     )
   end
 
   lane :build_preprod_app do |options|
     build(
-      app_identifier: env_value(key: env_variables[:core][:preprod_app_id]),
-      scheme: env_value(key: env_variables[:core][:preprod_scheme]),
+      app_identifier: ENV[env_variables[:core][:preprod_app_id]],
+      scheme: ENV[env_variables[:core][:preprod_scheme]],
       is_store: false
     )
   end
 
   lane :build_prod_app do |options|
     build(
-      app_identifier: env_value(key: env_variables[:core][:app_id]),
-      scheme: env_value(key: env_variables[:core][:prod_scheme]),
+      app_identifier: ENV[env_variables[:core][:app_id]],
+      scheme: ENV[env_variables[:core][:prod_scheme]],
       is_store: false
     )
   end
@@ -219,7 +224,7 @@ platform :ios do
   lane :deploy_staging_app_to_tryouts do |options|    
     send_slack_notification = (options[:send_slack_notification] == nil) ? true : options[:send_slack_notification]
     target = "Staging"
-    app_id = env_value(key: env_variables[:core][:staging_app_id])
+    app_id = ENV[env_variables[:core][:staging_app_id]]
 
     if app_id == nil
       UI.important "No app is found to deploy to Tryouts [#{target}]"
@@ -229,11 +234,11 @@ platform :ios do
     deploy_to_tryouts(
       target: target,
       app_identifier: app_id,
-      scheme: env_value(key: env_variables[:core][:staging_scheme]),
-      ipa_name: env_value(key: env_variables[:core][:staging_ipa_name]),
-      tryouts_app_id: env_value(key: env_variables[:core][:staging_tryouts_app_id]),
-      tryouts_api_token: env_value(key: env_variables[:core][:staging_tryouts_api_token]),
-      google_service_info_plist_path: env_value(key: env_variables[:core][:staging_info_plist])
+      scheme: ENV[env_variables[:core][:staging_scheme]],
+      ipa_name: ENV[env_variables[:core][:staging_ipa_name]]
+      tryouts_app_id: ENV[env_variables[:core][:staging_tryouts_app_id]],
+      tryouts_api_token: ENV[env_variables[:core][:staging_tryouts_api_token]],
+      google_service_info_plist_path: ENV[env_variables[:core][:staging_info_plist]]
     )
 
     tryouts_release = lane_context[SharedValues::TRYOUTS_BUILD_INFORMATION] 
@@ -251,7 +256,7 @@ platform :ios do
   lane :deploy_preprod_app_to_tryouts do |options|
     send_slack_notification = (options[:send_slack_notification] == nil) ? true : options[:send_slack_notification]
     target = "Preprod"
-    app_id = env_value(key: env_variables[:core][:preprod_app_id])
+    app_id = ENV[env_variables[:core][:preprod_app_id]]
 
     if app_id == nil
       UI.important "No app is found to deploy to Tryouts [#{target}]"
@@ -261,11 +266,11 @@ platform :ios do
     deploy_to_tryouts(
       target: target,
       app_identifier: app_id,
-      scheme: env_value(key: env_variables[:core][:preprod_scheme]),
-      ipa_name: env_value(key: env_variables[:core][:preprod_ipa_name]),
-      tryouts_app_id: env_value(key: env_variables[:core][:preprod_tryouts_app_id]),
-      tryouts_api_token: env_value(key: env_variables[:core][:preprod_tryouts_api_token]),
-      google_service_info_plist_path: env_value(key: env_variables[:core][:preprod_info_plist])
+      scheme: ENV[env_variables[:core][:preprod_scheme]],
+      ipa_name: ENV[env_variables[:core][:preprod_ipa_name]],
+      tryouts_app_id: ENV[env_variables[:core][:preprod_tryouts_app_id]],
+      tryouts_api_token: ENV[env_variables[:core][:preprod_tryouts_api_token]],
+      google_service_info_plist_path: ENV[env_variables[:core][:preprod_info_plist]]
     )
 
     tryouts_release = lane_context[SharedValues::TRYOUTS_BUILD_INFORMATION] 
@@ -283,7 +288,7 @@ platform :ios do
   lane :deploy_prod_app_to_tryouts do |options|
     send_slack_notification = (options[:send_slack_notification] == nil) ? true : options[:send_slack_notification]
     target = "Prod"
-    app_id = env_value(key: env_variables[:core][:app_id])
+    app_id = ENV[env_variables[:core][:app_id]]
 
     if app_id == nil
       UI.important "No app is found to deploy to Tryouts [#{target}]"
@@ -293,11 +298,11 @@ platform :ios do
     deploy_to_tryouts(
       target: target,
       app_identifier: app_id,
-      scheme: env_value(key: env_variables[:core][:prod_scheme]),
-      ipa_name: env_value(key: env_variables[:core][:prod_ipa_name]),
-      tryouts_app_id: env_value(key: env_variables[:core][:prod_tryouts_app_id]),
-      tryouts_api_token: env_value(key: env_variables[:core][:prod_tryouts_api_token]),
-      google_service_info_plist_path: env_value(key: env_variables[:core][:prod_info_plist])
+      scheme: ENV[env_variables[:core][:prod_scheme]],
+      ipa_name: ENV[env_variables[:core][:prod_ipa_name]],
+      tryouts_app_id: ENV[env_variables[:core][:prod_tryouts_app_id]],
+      tryouts_api_token: ENV[env_variables[:core][:prod_tryouts_api_token]],
+      google_service_info_plist_path: ENV[env_variables[:core][:prod_info_plist]]
     )
 
     tryouts_release = lane_context[SharedValues::TRYOUTS_BUILD_INFORMATION] 
@@ -313,7 +318,7 @@ platform :ios do
   end
 
   private_lane :app_name_for_target do |options|
-    app_name = "#{env_value(key: env_variables[:core][:app_name])} #{options[:target]}"
+    app_name = "#{ENV[env_variables[:core][:app_name]]} #{options[:target]}"
     app_name
   end
 
@@ -359,33 +364,33 @@ platform :ios do
   lane :deploy_staging_app_to_testflight do |options|
     deploy_to_testflight(
       target: "Staging",
-      app_identifier: env_value(key: env_variables[:core][:staging_app_id]),
-      scheme: env_value(key: env_variables[:core][:staging_scheme]),
-      ipa_name: env_value(key: env_variables[:core][:staging_ipa_name]),
+      app_identifier: ENV[env_variables[:core][:staging_app_id]],
+      scheme: ENV[env_variables[:core][:staging_scheme]],
+      ipa_name: ENV[env_variables[:core][:staging_ipa_name]],
       export_method: "ad-hoc",
-      google_service_info_plist_path: env_value(key: env_variables[:core][:staging_info_plist])
+      google_service_info_plist_path: ENV[env_variables[:core][:staging_info_plist]]
     )
   end
 
   lane :deploy_preprod_app_to_testflight do |options|
     deploy_to_testflight(
       target: "Preprod",
-      app_identifier: env_value(key: env_variables[:core][:preprod_app_id]),
-      scheme: env_value(key: env_variables[:core][:preprod_scheme]),
-      ipa_name: env_value(key: env_variables[:core][:preprod_ipa_name]),
+      app_identifier: ENV[env_variables[:core][:preprod_app_id]],
+      scheme: ENV[env_variables[:core][:preprod_scheme]],
+      ipa_name: ENV[env_variables[:core][:preprod_ipa_name]],
       export_method: "ad-hoc",
-      google_service_info_plist_path: env_value(key: env_variables[:core][:preprod_info_plist])
+      google_service_info_plist_path: ENV[env_variables[:core][:preprod_info_plist]]
     )
   end
 
   lane :deploy_store_app_to_testflight do |options|
     deploy_to_testflight(
       target: "Store",
-      app_identifier: env_value(key: env_variables[:core][:app_id]),
-      scheme: env_value(key: env_variables[:core][:scheme]),
-      ipa_name: env_value(key: env_variables[:core][:ipa_name]),
+      app_identifier: ENV[env_variables[:core][:app_id]],
+      scheme: ENV[env_variables[:core][:scheme]],
+      ipa_name: ENV[env_variables[:core][:ipa_name]],
       export_method: "app-store",
-      google_service_info_plist_path: env_value(key: env_variables[:core][:info_plist])
+      google_service_info_plist_path: ENV[env_variables[:core][:info_plist]]
     )
   end
 
@@ -398,21 +403,21 @@ platform :ios do
   lane :sync_staging_dev_cert do |options|
     sync_dev_cert(
       target: "Staging",
-      app_identifier: env_value(key: env_variables[:core][:staging_app_id])
+      app_identifier: ENV[env_variables[:core][:staging_app_id]]
     )
   end
 
   lane :sync_preprod_dev_cert do |options|
     sync_dev_cert(
       target: "Preprod",
-      app_identifier: env_value(key: env_variables[:core][:preprod_app_id])
+      app_identifier: ENV[env_variables[:core][:preprod_app_id]]
     )
   end
 
   lane :sync_prod_dev_cert do |options|
     sync_dev_cert(
       target: "Prod",
-      app_identifier: env_value(key: env_variables[:core][:app_id])
+      app_identifier: ENV[env_variables[:core][:app_id]]
     )
   end
 
@@ -468,7 +473,7 @@ platform :ios do
 
     #5
     archive(
-      configuration: env_value(key: env_variables[:core][:adhoc_build_config]),
+      configuration: ENV[env_variables[:core][:adhoc_build_config]],
       scheme: options[:scheme],
       output_name: options[:ipa_name],
       export_method: "ad-hoc",
@@ -508,7 +513,7 @@ platform :ios do
 
     #4
     archive(
-        configuration: env_value(key: env_variables[:core][:app_store_build_config]),
+        configuration: ENV[env_variables[:core][:app_store_build_config]],
         scheme: options[:scheme],
         output_name: options[:ipa_name],
         export_method: "app-store",
@@ -593,10 +598,10 @@ platform :ios do
   #Register api key for app store connect 
   lane :register_connect_api_key do |options|
     app_store_connect_api_key(
-      key_id: env_value(key: env_variables[:match][:key_id]),
-      issuer_id: env_value(key: env_variables[:match][:issuer_id]),
-      key_content: env_value(key: env_variables[:match][:key_content]),
-      in_house: env_value(key: env_variables[:match][:in_house])
+      key_id: ENV[env_variables[:match][:key_id]],
+      issuer_id: ENV[env_variables[:match][:issuer_id]],
+      key_content: ENV[env_variables[:match][:key_content]],
+      in_house: ENV[env_variables[:match][:in_house]]
     )
   end
 
@@ -671,7 +676,7 @@ platform :ios do
   end
 
   lane :notify_slack do |options|
-    slack_webhook_url = env_value(key: env_variables[:core][:slack_webhook_url])
+    slack_webhook_url = ENV[env_variables[:core][:slack_webhook_url]]
 
     if slack_webhook_url == nil
       UI.important "No 'Slack' webhook url is provided!"
@@ -685,9 +690,5 @@ platform :ios do
       message: options[:message],
       attachment_properties: options[:attachment_properties]
     )
-  end
-
-  lane :env_value do |options|
-    ENV[options[:key]]
   end
 end
