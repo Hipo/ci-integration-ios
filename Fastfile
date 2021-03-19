@@ -633,7 +633,7 @@ platform :ios do
 
     #2
     gym(
-      workspace: env_variables[:core][:workspace],
+      workspace: ENV[env_variables[:core][:workspace]],
       configuration: options[:configuration],
       scheme: options[:scheme],
       clean: true,
