@@ -235,7 +235,7 @@ platform :ios do
       target: target,
       app_identifier: app_id,
       scheme: ENV[env_variables[:core][:staging_scheme]],
-      ipa_name: ENV[env_variables[:core][:staging_ipa_name]]
+      ipa_name: ENV[env_variables[:core][:staging_ipa_name]],
       tryouts_app_id: ENV[env_variables[:core][:staging_tryouts_app_id]],
       tryouts_api_token: ENV[env_variables[:core][:staging_tryouts_api_token]],
       google_service_info_plist_path: ENV[env_variables[:core][:staging_info_plist]]
