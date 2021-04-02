@@ -11,6 +11,7 @@ platform :ios do
       workspace: "WORKSPACE",
       app_name: "APP_NAME",
       slack_webhook_url: "SLACK_WEBHOOK_URL",
+      podfile: "PODFILE"
       #Store
       app_id: "APP_ID",
       scheme: "SCHEME",
@@ -608,9 +609,12 @@ platform :ios do
   lane :install_pods do |options|
     ENV["COCOAPODS_SCHEME"] = options[:is_store] ? "production" : "development"
 
+    podfile = ENV[env_variables[:core][:podfile]] || "./Podfile"
+
     cocoapods(
       repo_update: false,
-      clean_install: true
+      clean_install: true,
+      podfile: podfile
     )
   end
 
