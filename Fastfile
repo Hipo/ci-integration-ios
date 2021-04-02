@@ -624,6 +624,7 @@ platform :ios do
 
     #2
     scan(
+      workspace: ENV[env_variables[:core][:workspace]],
       app_identifier: options[:app_identifier],
       scheme: options[:scheme],
       clean: true,
