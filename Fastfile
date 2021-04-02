@@ -11,7 +11,7 @@ platform :ios do
       workspace: "WORKSPACE",
       app_name: "APP_NAME",
       slack_webhook_url: "SLACK_WEBHOOK_URL",
-      podfile: "PODFILE"
+      podfile: "PODFILE",
       #Store
       app_id: "APP_ID",
       scheme: "SCHEME",
