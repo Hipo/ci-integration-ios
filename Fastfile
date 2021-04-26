@@ -12,6 +12,7 @@ platform :ios do
       app_name: "APP_NAME",
       slack_webhook_url: "SLACK_WEBHOOK_URL",
       podfile: "PODFILE",
+      upload_symbols_path: "UPLOAD_SYMBOLS_PATH",
       #Store
       app_id: "APP_ID",
       scheme: "SCHEME",
@@ -488,7 +489,10 @@ platform :ios do
     )
 
     #7
-    upload_symbols_to_crashlytics(gsp_path: options[:google_service_info_plist_path])
+    upload_symbols_to_crashlytics(
+      gsp_path: options[:google_service_info_plist_path], 
+      binary_path: ENV[env_variables[:core][:upload_symbols_path:]]
+    )
   end
 
   lane :deploy_to_testflight do |options|
@@ -528,7 +532,10 @@ platform :ios do
     )
 
     #6
-    upload_symbols_to_crashlytics(gsp_path: options[:google_service_info_plist_path])
+    upload_symbols_to_crashlytics(
+      gsp_path: options[:google_service_info_plist_path],
+      binary_path: ENV[env_variables[:core][:upload_symbols_path:]]
+    )
 
     #7
     notify_slack_for_success(
