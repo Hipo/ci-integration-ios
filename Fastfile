@@ -491,7 +491,7 @@ platform :ios do
     #7
     upload_symbols_to_crashlytics(
       gsp_path: options[:google_service_info_plist_path], 
-      binary_path: ENV[env_variables[:core][:upload_symbols_path:]]
+      binary_path: ENV[env_variables[:core][:upload_symbols_path]]
     )
   end
 
@@ -534,7 +534,7 @@ platform :ios do
     #6
     upload_symbols_to_crashlytics(
       gsp_path: options[:google_service_info_plist_path],
-      binary_path: ENV[env_variables[:core][:upload_symbols_path:]]
+      binary_path: ENV[env_variables[:core][:upload_symbols_path]]
     )
 
     #7
