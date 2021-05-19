@@ -21,6 +21,7 @@ platform :ios do
       app_store_build_config: "APP_STORE_BUILD_CONFIGURATION",
       itc_name: "FASTLANE_ITC_TEAM_NAME",
       #Prod
+      prod_app_id: "PROD_APP_ID",
       prod_scheme: "PROD_SCHEME",
       prod_ipa_name: "PROD_IPA_NAME",
       prod_tryouts_app_id: "PROD_TRYOUTS_APP_ID",
@@ -56,6 +57,13 @@ platform :ios do
       key_content: "KEY_CONTENT",
       in_house: "IN_HOUSE",
       match_password: "MATCH_PASSWORD",
+    },
+
+    firebase: {
+      app_id: "FIREBASE_APP_ID",
+      prod_test_groups: "FIREBASE_PROD_TEST_GROUPS",
+      token: "FIREBASE_TOKEN",
+      app_url: "FIREBASE_APP_URL"
     }
   }
 
@@ -701,6 +709,58 @@ platform :ios do
       success: options[:is_success],
       message: options[:message],
       attachment_properties: options[:attachment_properties]
+    )
+  end
+
+  lane :firebase_prod_release do |options|
+    
+    #1
+    clean_build_artifacts
+
+    #2
+    register_connect_api_key
+
+    #3
+    install_pods(is_store: options[:is_store])
+
+    #4
+    sign(
+      type: "adhoc",
+      app_identifier: ENV[env_variables[:core][:prod_app_id]]
+    )
+
+    #5
+    archive(
+      configuration: ENV[env_variables[:core][:adhoc_build_config]],
+      scheme: ENV[env_variables[:core][:prod_scheme]],
+      output_name: ENV[env_variables[:core][:prod_ipa_name]],
+      export_method: "ad-hoc",
+      is_store: false
+    )
+
+    #6
+    firebase_app_distribution(
+        app: ENV[env_variables[:firebase][:app_id]],
+        groups: ENV[env_variables[:firebase][:prod_test_groups]],
+        firebase_cli_token: ENV[env_variables[:firebase][:token]]
+    )
+
+    #7
+    upload_symbols_to_crashlytics(gsp_path: ENV[env_variables[:core][:prod_info_plist]])
+
+    #8
+    app_name = "#{ENV[env_variables[:core][:app_name]]} Prod"
+
+    action = {
+      text: app_name, 
+      url: ENV[env_variables[:firebase][:app_url]]
+    }
+
+    notify_slack_for_success(
+      message: "🚀 Released #{last_git_tag} (iOS) to Firebase!",
+      attachment_properties: {
+        actions: [action]
+      }
     )
   end
 end
