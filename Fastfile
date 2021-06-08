@@ -289,7 +289,7 @@ platform :ios do
         configuration: ENV[env_variables[:core][:app_store_build_config]],
         scheme: options[:scheme],
         output_name: options[:ipa_name],
-        export_method: options[:export_method],
+        export_method: "app-store",
         is_store: true
     )
 
