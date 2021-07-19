@@ -10,7 +10,6 @@ platform :ios do
       team_id: "TEAM_ID",
       app_name: "APP_NAME",
       slack_webhook_url: "SLACK_WEBHOOK_URL",
-      podfile: "PODFILE",
       upload_symbols_path: "UPLOAD_SYMBOLS_PATH",
       #Store
       app_id: "APP_ID",
@@ -346,23 +345,8 @@ platform :ios do
     )
   end
 
-  lane :install_pods do |options|
-    ENV["COCOAPODS_SCHEME"] = options[:is_store] ? "production" : "development"
-
-    podfile = ENV[env_variables[:core][:podfile]] || "./Podfile"
-
-    cocoapods(
-      repo_update: false,
-      clean_install: true,
-      podfile: podfile
-    )
-  end
-
   lane :build do |options|
     #1
-    install_pods(is_store: options[:is_store])
-
-    #2
     scan(
       app_identifier: options[:app_identifier],
       scheme: options[:scheme],
@@ -373,9 +357,6 @@ platform :ios do
 
   lane :archive do |options|
     #1
-    install_pods(is_store: options[:is_store])
-
-    #2
     gym(
       configuration: options[:configuration],
       scheme: options[:scheme],
