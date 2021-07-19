@@ -33,7 +33,9 @@ platform :ios do
       staging_app_id: "STAGING_APP_ID", 
       staging_scheme: "STAGING_SCHEME",
       staging_ipa_name: "STAGING_IPA_NAME",
-      staging_info_plist: "STAGING_GOOGLE_SERVICE_INFO_PLIST_PATH"
+      staging_info_plist: "STAGING_GOOGLE_SERVICE_INFO_PLIST_PATH",
+
+      device: "DEVICE"
     },
 
     s3: {
@@ -348,13 +350,15 @@ platform :ios do
   end
 
   lane :build do |options|
+    device = ENV[env_variables[:core][:device]] || nil
     #1
     scan(
       project: ENV[env_variables[:core][:project]],
       app_identifier: options[:app_identifier],
       scheme: options[:scheme],
       clean: true,
-      build_for_testing: true
+      build_for_testing: true,
+      device: device
     )
   end
 
