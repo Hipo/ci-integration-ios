@@ -8,7 +8,6 @@ platform :ios do
     core: {
       fastlane_user: "FASTLANE_USER",
       team_id: "TEAM_ID",
-      workspace: "WORKSPACE",
       app_name: "APP_NAME",
       slack_webhook_url: "SLACK_WEBHOOK_URL",
       podfile: "PODFILE",
@@ -57,7 +56,6 @@ platform :ios do
     shared: [
       env_variables[:core][:fastlane_user],
       env_variables[:core][:team_id],
-      env_variables[:core][:workspace],
       env_variables[:core][:app_name],
       env_variables[:core][:slack_webhook_url],
       env_variables[:s3][:bucket],
@@ -366,7 +364,6 @@ platform :ios do
 
     #2
     scan(
-      workspace: ENV[env_variables[:core][:workspace]],
       app_identifier: options[:app_identifier],
       scheme: options[:scheme],
       clean: true,
@@ -380,7 +377,6 @@ platform :ios do
 
     #2
     gym(
-      workspace: ENV[env_variables[:core][:workspace]],
       configuration: options[:configuration],
       scheme: options[:scheme],
       clean: true,
