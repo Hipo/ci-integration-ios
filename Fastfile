@@ -11,6 +11,7 @@ platform :ios do
       app_name: "APP_NAME",
       slack_webhook_url: "SLACK_WEBHOOK_URL",
       upload_symbols_path: "UPLOAD_SYMBOLS_PATH",
+      project: "PROJECT",
       #Store
       app_id: "APP_ID",
       scheme: "SCHEME",
@@ -55,6 +56,7 @@ platform :ios do
     shared: [
       env_variables[:core][:fastlane_user],
       env_variables[:core][:team_id],
+      env_variables[:core][:project],
       env_variables[:core][:app_name],
       env_variables[:core][:slack_webhook_url],
       env_variables[:s3][:bucket],
@@ -348,6 +350,7 @@ platform :ios do
   lane :build do |options|
     #1
     scan(
+      project: ENV[env_variables[:core][:project]],
       app_identifier: options[:app_identifier],
       scheme: options[:scheme],
       clean: true,
@@ -358,6 +361,7 @@ platform :ios do
   lane :archive do |options|
     #1
     gym(
+      project: ENV[env_variables[:core][:project]],
       configuration: options[:configuration],
       scheme: options[:scheme],
       clean: true,
