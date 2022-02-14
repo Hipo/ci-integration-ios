@@ -332,7 +332,8 @@ platform :ios do
   # Sign Cerificates For Given Profile Type
   lane :sign do |options|
     match(
-      type: options[:type], 
+      type: options[:type],
+      profile_name: "Profile #{options[:type]} #{options[:app_identifier]}",
       app_identifier: options[:app_identifier],
       force_for_new_devices: true,
       verbose: true
