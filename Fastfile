@@ -8,7 +8,6 @@ platform :ios do
     core: {
       fastlane_user: "FASTLANE_USER",
       team_id: "TEAM_ID",
-      app_name: "APP_NAME",
       slack_webhook_url: "SLACK_WEBHOOK_URL",
       upload_symbols_path: "UPLOAD_SYMBOLS_PATH",
       project: "PROJECT",
@@ -59,7 +58,6 @@ platform :ios do
       env_variables[:core][:fastlane_user],
       env_variables[:core][:team_id],
       env_variables[:core][:project],
-      env_variables[:core][:app_name],
       env_variables[:core][:slack_webhook_url],
       env_variables[:s3][:bucket],
       env_variables[:s3][:access_key],
@@ -171,11 +169,6 @@ platform :ios do
       scheme: ENV[env_variables[:core][:prod_scheme]],
       is_store: false
     )
-  end
-
-  private_lane :app_name_for_target do |options|
-    app_name = "#{ENV[env_variables[:core][:app_name]]} #{options[:target]}"
-    app_name
   end
 
   lane :deploy_all_apps_to_testflight do |options|
@@ -390,7 +383,7 @@ platform :ios do
 
   lane :notify_slack_for_error do |options|
     notify_slack(
-      default_payloads: [:git_branch, :lane],
+      default_payloads: [],
       is_success: false,
       message: options[:message],
       attachment_properties: options[:attachment_properties]
