@@ -19,6 +19,7 @@ platform :ios do
       app_store_build_config: "APP_STORE_BUILD_CONFIGURATION",
       itc_name: "FASTLANE_ITC_TEAM_NAME",
       #Prod
+      prod_app_id: "PROD_APP_ID",
       prod_scheme: "PROD_SCHEME",
       prod_ipa_name: "PROD_IPA_NAME",
       prod_info_plist: "PROD_GOOGLE_SERVICE_INFO_PLIST_PATH",
@@ -80,7 +81,7 @@ platform :ios do
     ],
 
     prod: [
-      env_variables[:core][:app_id],
+      env_variables[:core][:prod_app_id],
       env_variables[:core][:prod_scheme],
       env_variables[:core][:prod_ipa_name],
       env_variables[:core][:prod_info_plist],
@@ -115,7 +116,9 @@ platform :ios do
       ensure_env_vars(
         env_vars: required_env_variables[:store]
       )
-
+    end
+    
+    if ENV[env_variables[:core][:prod_app_id]] != nil
       ensure_env_vars(
         env_vars: required_env_variables[:prod]
       )
@@ -165,7 +168,7 @@ platform :ios do
 
   lane :build_prod_app do |options|
     build(
-      app_identifier: ENV[env_variables[:core][:app_id]],
+      app_identifier: ENV[env_variables[:core][:prod_app_id]],
       scheme: ENV[env_variables[:core][:prod_scheme]],
       is_store: false
     )
@@ -196,6 +199,17 @@ platform :ios do
       ipa_name: ENV[env_variables[:core][:preprod_ipa_name]],
       export_method: "ad-hoc",
       google_service_info_plist_path: ENV[env_variables[:core][:preprod_info_plist]]
+    )
+  end
+  
+  lane :deploy_prod_app_to_testflight do |options|
+    deploy_to_testflight(
+      target: "Prod",
+      app_identifier: ENV[env_variables[:core][:prod_app_id]],
+      scheme: ENV[env_variables[:core][:prod_scheme]],
+      ipa_name: ENV[env_variables[:core][:prod_ipa_name]],
+      export_method: "ad-hoc",
+      google_service_info_plist_path: ENV[env_variables[:core][:prod_info_plist]]
     )
   end
 
