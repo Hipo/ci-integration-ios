@@ -8,11 +8,9 @@ platform :ios do
     core: {
       fastlane_user: "FASTLANE_USER",
       team_id: "TEAM_ID",
-      workspace: "WORKSPACE",
-      app_name: "APP_NAME",
       slack_webhook_url: "SLACK_WEBHOOK_URL",
-      podfile: "PODFILE",
       upload_symbols_path: "UPLOAD_SYMBOLS_PATH",
+      project: "PROJECT",
       #Store
       app_id: "APP_ID",
       scheme: "SCHEME",
@@ -21,6 +19,7 @@ platform :ios do
       app_store_build_config: "APP_STORE_BUILD_CONFIGURATION",
       itc_name: "FASTLANE_ITC_TEAM_NAME",
       #Prod
+      prod_app_id: "PROD_APP_ID",
       prod_scheme: "PROD_SCHEME",
       prod_ipa_name: "PROD_IPA_NAME",
       prod_info_plist: "PROD_GOOGLE_SERVICE_INFO_PLIST_PATH",
@@ -34,7 +33,9 @@ platform :ios do
       staging_app_id: "STAGING_APP_ID", 
       staging_scheme: "STAGING_SCHEME",
       staging_ipa_name: "STAGING_IPA_NAME",
-      staging_info_plist: "STAGING_GOOGLE_SERVICE_INFO_PLIST_PATH"
+      staging_info_plist: "STAGING_GOOGLE_SERVICE_INFO_PLIST_PATH",
+
+      device: "DEVICE"
     },
 
     s3: {
@@ -57,8 +58,7 @@ platform :ios do
     shared: [
       env_variables[:core][:fastlane_user],
       env_variables[:core][:team_id],
-      env_variables[:core][:workspace],
-      env_variables[:core][:app_name],
+      env_variables[:core][:project],
       env_variables[:core][:slack_webhook_url],
       env_variables[:s3][:bucket],
       env_variables[:s3][:access_key],
@@ -81,7 +81,7 @@ platform :ios do
     ],
 
     prod: [
-      env_variables[:core][:app_id],
+      env_variables[:core][:prod_app_id],
       env_variables[:core][:prod_scheme],
       env_variables[:core][:prod_ipa_name],
       env_variables[:core][:prod_info_plist],
@@ -116,7 +116,9 @@ platform :ios do
       ensure_env_vars(
         env_vars: required_env_variables[:store]
       )
-
+    end
+    
+    if ENV[env_variables[:core][:prod_app_id]] != nil
       ensure_env_vars(
         env_vars: required_env_variables[:prod]
       )
@@ -166,15 +168,10 @@ platform :ios do
 
   lane :build_prod_app do |options|
     build(
-      app_identifier: ENV[env_variables[:core][:app_id]],
+      app_identifier: ENV[env_variables[:core][:prod_app_id]],
       scheme: ENV[env_variables[:core][:prod_scheme]],
       is_store: false
     )
-  end
-
-  private_lane :app_name_for_target do |options|
-    app_name = "#{ENV[env_variables[:core][:app_name]]} #{options[:target]}"
-    app_name
   end
 
   lane :deploy_all_apps_to_testflight do |options|
@@ -202,6 +199,17 @@ platform :ios do
       ipa_name: ENV[env_variables[:core][:preprod_ipa_name]],
       export_method: "ad-hoc",
       google_service_info_plist_path: ENV[env_variables[:core][:preprod_info_plist]]
+    )
+  end
+  
+  lane :deploy_prod_app_to_testflight do |options|
+    deploy_to_testflight(
+      target: "Prod",
+      app_identifier: ENV[env_variables[:core][:prod_app_id]],
+      scheme: ENV[env_variables[:core][:prod_scheme]],
+      ipa_name: ENV[env_variables[:core][:prod_ipa_name]],
+      export_method: "ad-hoc",
+      google_service_info_plist_path: ENV[env_variables[:core][:prod_info_plist]]
     )
   end
 
@@ -331,7 +339,8 @@ platform :ios do
   # Sign Cerificates For Given Profile Type
   lane :sign do |options|
     match(
-      type: options[:type], 
+      type: options[:type],
+      profile_name: "Profile #{options[:type]} #{options[:app_identifier]}",
       app_identifier: options[:app_identifier],
       force_for_new_devices: true,
       verbose: true
@@ -348,46 +357,28 @@ platform :ios do
     )
   end
 
-  lane :install_pods do |options|
-    ENV["COCOAPODS_SCHEME"] = options[:is_store] ? "production" : "development"
-
-    podfile = ENV[env_variables[:core][:podfile]] || "./Podfile"
-
-    cocoapods(
-      repo_update: false,
-      clean_install: true,
-      podfile: podfile
-    )
-  end
-
   lane :build do |options|
+    device = ENV[env_variables[:core][:device]] || nil
     #1
-    install_pods(is_store: options[:is_store])
-
-    #2
     scan(
-      workspace: ENV[env_variables[:core][:workspace]],
+      project: ENV[env_variables[:core][:project]],
       app_identifier: options[:app_identifier],
       scheme: options[:scheme],
       clean: true,
-      build_for_testing: true
+      build_for_testing: true,
+      device: device
     )
   end
 
   lane :archive do |options|
     #1
-    install_pods(is_store: options[:is_store])
-
-    #2
     gym(
-      workspace: ENV[env_variables[:core][:workspace]],
+      project: ENV[env_variables[:core][:project]],
       configuration: options[:configuration],
       scheme: options[:scheme],
       clean: true,
       output_directory: "./archive",
       output_name: options[:output_name],
-      include_bitcode: true,
-      xcargs: {:BITCODE_GENERATION_MODE => "bitcode"},
       export_method: options[:export_method],
       verbose: true
     )
@@ -404,7 +395,7 @@ platform :ios do
 
   lane :notify_slack_for_error do |options|
     notify_slack(
-      default_payloads: [:git_branch, :lane],
+      default_payloads: [],
       is_success: false,
       message: options[:message],
       attachment_properties: options[:attachment_properties]
